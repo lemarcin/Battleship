@@ -48,6 +48,7 @@ class Board {
         }
         print(false);
         setupShips();
+        theGame();
     }
 
     private void print(boolean hideShips) {
@@ -143,5 +144,35 @@ class Board {
             return board[y][x].equals("O");
         }
         return false;
+    }
+
+    private void theGame() {
+        System.out.println("\nThe game starts!");
+        print(false);
+        System.out.println("\nTake a shot!\n");
+        int x = 0;
+        int y = 0;
+        do {
+            boolean continues = false;
+            String input = new java.util.Scanner(System.in).nextLine();
+            if (input.matches("[A-J]([1-9]|10)")) {
+                x = Integer.parseInt(input.replaceAll("[A-J]", ""));
+                y = input.charAt(0) - 64;
+            } else {
+                System.out.println("\nError! You entered the wrong coordinates! Try again:\n");
+                continue;
+            }
+
+            if (isTooClose(x, y)) {
+                board[y][x] = "X";
+                print(false);
+                System.out.println("\nYou hit a ship!");
+            } else {
+                board[y][x] = "M";
+                print(false);
+                System.out.println("\nYou missed!");
+            }
+            break;
+        } while (true);
     }
 }
