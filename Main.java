@@ -54,7 +54,7 @@ class Board {
     private void print(boolean hideShips) {
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
-                System.out.print(hideShips && board[i][j].equals("O") ? "~" : board[i][j] + " ");
+                System.out.print(hideShips && board[i][j].equals("O") ? "~ " : board[i][j] + " ");
             }
             System.out.println("");
         }
@@ -148,7 +148,7 @@ class Board {
 
     private void theGame() {
         System.out.println("\nThe game starts!");
-        print(false);
+        print(true);
         System.out.println("\nTake a shot!\n");
         int x = 0;
         int y = 0;
@@ -165,14 +165,15 @@ class Board {
 
             if (isTooClose(x, y)) {
                 board[y][x] = "X";
-                print(false);
+                print(true);
                 System.out.println("\nYou hit a ship!");
             } else {
                 board[y][x] = "M";
-                print(false);
+                print(true);
                 System.out.println("\nYou missed!");
             }
             break;
         } while (true);
+        print(false);
     }
 }
