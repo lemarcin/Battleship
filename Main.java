@@ -36,6 +36,7 @@ class Board {
     final int length = 11;
     String[][] board = new String[length][length];
 
+
     public Board() {
         char abc = 'A';
         board[0][0] = " ";
@@ -52,39 +53,29 @@ class Board {
     }
 
     private void print(boolean hideShips) {
+        System.out.println("");
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
                 System.out.print(hideShips && board[i][j].equals("O") ? "~ " : board[i][j] + " ");
             }
-            System.out.println("");
+            System.out.println();
         }
-    }
-
-    private boolean stateOfGame () {
-        for (int i = 0; i < length; i++) {
-            for (int j = 0; j < length; j++) {
-                if (board[i][j].equals("O")) {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
     private void setupShips() {
         for (Ships ship : Ships.values()) {
             System.out.println("\nEnter the coordinates of the " + ship.getName()
-                        + " (" + ship.getLength() + " cells):\n");
+                    + " (" + ship.getLength() + " cells):\n");
             enterTheCoordinates(ship);
             print(false);
         }
     }
 
     private void enterTheCoordinates(Ships ship) {
-        int xa = 0, x1 = 0;
-        int xb = 0, x2 = 0;
-        int ya = 0, y1 = 0;
-        int yb = 0, y2 = 0;
+        int xa, x1;
+        int xb, x2;
+        int ya, y1;
+        int yb, y2;
         do {
             boolean continues = false;
             String input = new java.util.Scanner(System.in).nextLine();
@@ -100,14 +91,14 @@ class Board {
                 y2 = Math.max(ya, yb);
 
             } else {
-                System.out.println("Error! Wrong ship location! Try again:\n");
+                System.out.println("\nError! Wrong ship location! Try again:\n");
                 continue;
             }
             if (x2 - x1 + 1 == ship.getLength() && y1 == y2) {
                 for (int i = 0;  i < ship.getLength(); i++) {
-                    if(isTooClose(x1 + i, y1) || isTooClose(x1 + i + 1, y1) || isTooClose(x1 + i - 1, y1) ||
-                            isTooClose(x1 + i, y1 - 1) || isTooClose(x1 + i, y1 + 1)) {
-                        System.out.println("Error! You placed it too close to another one. Try again:\n");
+                    if(isHit(x1 + i, y1) || isHit(x1 + i + 1, y1) || isHit(x1 + i - 1, y1) ||
+                            isHit(x1 + i, y1 - 1) || isHit(x1 + i, y1 + 1)) {
+                        System.out.println("\nError! You placed it too close to another one. Try again:\n");
                         continues = true;
                         break;
                     }
@@ -115,13 +106,14 @@ class Board {
                 if (continues) continue;
                 for (int i = 0; i < ship.getLength(); i++) {
                     board[y1][x1 + i] = "O";
+
                 }
                 break;
             } else if (y2 - y1 + 1 == ship.getLength() && x1 == x2) {
                 for (int i = 0;  i < ship.getLength(); i++) {
-                    if(isTooClose(x1, y1 + i) || isTooClose(x1 + 1, y1 + i) || isTooClose(x1 - 1, y1 + i) ||
-                            isTooClose(x1, y1 + i - 1) || isTooClose(x1, y1 + i + 1)) {
-                        System.out.println("Error! You placed it too close to another one. Try again:\n");
+                    if(isHit(x1, y1 + i) || isHit(x1 + 1, y1 + i) || isHit(x1 - 1, y1 + i) ||
+                            isHit(x1, y1 + i - 1) || isHit(x1, y1 + i + 1)) {
+                        System.out.println("\nError! You placed it too close to another one. Try again:\n");
                         continues = true;
                         break;
                     }
@@ -132,16 +124,23 @@ class Board {
                 }
                 break;
             } else if (y2 - y1 + 1 != ship.getLength() && x1 == x2 || x2 - x1 + 1 != ship.getLength() && y1 == y2) {
-                System.out.println("Error! Wrong length of the " + ship.getName() + "! Try again:\n");
+                System.out.println("\nError! Wrong length of the " + ship.getName() + "! Try again:\n");
             } else {
-                System.out.println("Error! Wrong ship location! Try again:\n");
+                System.out.println("\nError! Wrong ship location! Try again:\n");
             }
         } while (true);
     }
 
-    private boolean isTooClose(int x, int y) {
-        if (x >= 0 && x <= 9 && y >= 0 && y <= 9) {
-            return board[y][x].equals("O");
+    private boolean isHit(int x, int y) {
+        if (x > 0 && x <= 10 && y > 0 && y <= 10) {
+            return (board[y][x].equals("O"));
+        }
+        return false;
+    }
+
+    private boolean wasHit(int x, int y) {
+        if (x > 0 && x <= 10 && y > 0 && y <= 10) {
+            return (board[y][x].equals("X"));
         }
         return false;
     }
@@ -163,17 +162,89 @@ class Board {
                 continue;
             }
 
-            if (isTooClose(x, y)) {
+            if (isHit(x, y) || wasHit(x, y)) {
                 board[y][x] = "X";
-                print(true);
-                System.out.println("\nYou hit a ship!");
+                print(false);                                       // ! ! ! ! ! ! ! !
+                if (endOfGame()) {
+                    System.out.println("\nYou sank the last ship. You won. Congratulations!");
+                    break;
+                } else if (sunk(x, y)) {
+                    System.out.println("\nYou sank a ship! Specify a new target:\n");
+                } else {
+                    System.out.println("\nYou hit a ship! Try again:\n");
+                }
             } else {
                 board[y][x] = "M";
-                print(true);
-                System.out.println("\nYou missed!");
+                print(false);                                       // ! ! ! ! ! ! ! !
+                System.out.println("\nYou missed. Try again:\n");
             }
-            break;
         } while (true);
-        print(false);
+    }
+
+    private boolean endOfGame() {
+        for (int i = 1; i < length; i++) {
+            for (int j = 1; j < length; j++) {
+                if (board[i][j].equals("O")) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean sunk(int x, int y) {
+        return !(sunkL(x + 1, y) || sunkR(x - 1, y) || sunkD(x, y + 1) || sunkU(x, y - 1));
+    }
+
+    private boolean sunkL(int x, int y) {
+        if (x > 0 && x <= 10 && y > 0 && y <= 10) {
+            if (board[y][x].equals("O")) {
+                return true;
+            } else if (board[y][x].equals("X")) {
+                return sunkL(x + 1, y);
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    private boolean sunkR(int x, int y) {
+        if (x > 0 && x < 10 && y > 0 && y <= 10) {
+            if (board[y][x].equals("O")) {
+                return true;
+            } else if (board[y][x].equals("X")) {
+                return sunkR(x - 1, y);
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    private boolean sunkD(int x, int y) {
+        if (x > 0 && x <= 10 && y > 0 && y <= 10) {
+            if (board[y][x].equals("O")) {
+                return true;
+            } else if (board[y][x].equals("X")) {
+                return sunkD(x, y + 1);
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    private boolean sunkU(int x, int y) {
+        if (x > 0 && x <= 10 && y > 0 && y <= 10) {
+            if (board[y][x].equals("O")) {
+                return true;
+            } else if (board[y][x].equals("X")) {
+                return sunkU(x, y - 1);
+            } else {
+                return false;
+            }
+        }
+        return false;
     }
 }
