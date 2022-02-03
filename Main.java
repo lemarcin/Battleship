@@ -1,31 +1,60 @@
 package battleship;
 
+import java.io.IOException;
+
 public class Main {
 
     public static void main(String[] args) {
-        Board playerA = new Board();
+        System.out.println("Player 1, place your ships on the game field\n");
+        Board player1 = new Board();
+        promptEnterKey();
+        System.out.println("Player 2, place your ships to the game field\n");
+        Board player2 = new Board();
+        do {
+            promptEnterKey();
+            player2.print(true);
+            System.out.println("---------------------");
+            player1.print(false);
+            System.out.println("\nPlayer 1, it's your turn:\n");
+            if(player2.theGame()) {
+                break;
+            }
+            promptEnterKey();
+            player1.print(true);
+            System.out.println("---------------------");
+            player2.print(false);
+            System.out.println("\nPlayer 2, it's your turn:\n");
+            if(player1.theGame()) {
+                break;
+            }
+        } while (true);
+    }
+
+    public static void promptEnterKey() {
+        System.out.println("\nPress Enter and pass the move to another player\n");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
-enum Ships {
 
+enum Ships {
     AIRCRAFT_CARRIER(5, "Aircraft Carrier"),
     BATTLESHIP(4, "Battleship"),
     SUBMARINE(3, "Submarine"),
     CRUISER(3, "Cruiser"),
     DESTROYER(2, "Destroyer");
-
     final int length;
     final String name;
-
     Ships(int shipLength, String shipName) {
         this.length = shipLength;
         this.name = shipName;
     }
-
     public int getLength () {
         return this.length;
     }
-
     public String getName() {
         return this.name;
     }
@@ -49,11 +78,9 @@ class Board {
         }
         print(false);
         setupShips();
-        theGame();
     }
 
-    private void print(boolean hideShips) {
-        System.out.println("");
+    void print(boolean hideShips) {
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
                 System.out.print(hideShips && board[i][j].equals("O") ? "~ " : board[i][j] + " ");
@@ -67,6 +94,7 @@ class Board {
             System.out.println("\nEnter the coordinates of the " + ship.getName()
                     + " (" + ship.getLength() + " cells):\n");
             enterTheCoordinates(ship);
+            System.out.println("");
             print(false);
         }
     }
@@ -145,40 +173,34 @@ class Board {
         return false;
     }
 
-    private void theGame() {
-        System.out.println("\nThe game starts!");
-        print(true);
-        System.out.println("\nTake a shot!\n");
+    boolean theGame() {
         int x = 0;
         int y = 0;
         do {
-            boolean continues = false;
             String input = new java.util.Scanner(System.in).nextLine();
             if (input.matches("[A-J]([1-9]|10)")) {
                 x = Integer.parseInt(input.replaceAll("[A-J]", ""));
                 y = input.charAt(0) - 64;
+                break;
             } else {
                 System.out.println("\nError! You entered the wrong coordinates! Try again:\n");
-                continue;
-            }
-
-            if (isHit(x, y) || wasHit(x, y)) {
-                board[y][x] = "X";
-                print(false);                                       // ! ! ! ! ! ! ! !
-                if (endOfGame()) {
-                    System.out.println("\nYou sank the last ship. You won. Congratulations!");
-                    break;
-                } else if (sunk(x, y)) {
-                    System.out.println("\nYou sank a ship! Specify a new target:\n");
-                } else {
-                    System.out.println("\nYou hit a ship! Try again:\n");
-                }
-            } else {
-                board[y][x] = "M";
-                print(false);                                       // ! ! ! ! ! ! ! !
-                System.out.println("\nYou missed. Try again:\n");
             }
         } while (true);
+        if (isHit(x, y) || wasHit(x, y)) {
+            board[y][x] = "X";
+            if (endOfGame()) {
+                System.out.println("\nYou sank the last ship. You won. Congratulations!\n");
+                return true;
+            } else if (sunk(x, y)) {
+                System.out.println("\nYou sank a ship!");
+            } else {
+                System.out.println("\nYou hit a ship!");
+            }
+        } else {
+            board[y][x] = "M";
+            System.out.println("\nYou missed.");
+        }
+        return false;
     }
 
     private boolean endOfGame() {
